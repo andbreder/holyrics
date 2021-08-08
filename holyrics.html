@@ -1,0 +1,358 @@
+
+<!DOCTYPE HTML>
+<html lang="pt-br">
+<head>
+	<title>bolyrics|breder</title>
+	<meta charset="utf-8">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;900&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--animate-duration: 300ms;
+		}
+		html, body {
+			padding: unset;
+			margin: unset;
+			background: unset;
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+		body {
+			position: relative;
+			height: 100%;
+		}
+
+		.music {
+			position: fixed;
+			bottom: 0;
+			height: fit-content;
+			width: 100%;
+			margin: unset;
+			text-align: center;
+			font-size: 5vw;
+			font-weight: 600;
+			letter-spacing: -0.04em;
+			line-height: 1.1em;
+			word-spacing: 0.075em;
+			color: #fff;
+			background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,15,80,0) 10%, rgba(0,20,100,0.80) 100%) !important;
+			-webkit-text-stroke: 1px rgb(0, 20, 100);
+		}
+		.music .title {
+			padding-bottom: 1rem;
+		}
+		.music .title .name {
+			height: fit-content;
+			margin: inherit;
+			font-size: 7vw;
+			font-weight: 900;
+			color: rgb(0, 170, 255);
+			-webkit-text-stroke: 1px rgb(0, 110, 255);
+		}
+		.music .title .artist {
+			height: fit-content;
+			margin: inherit;
+		}
+		.music .lyrics {
+			height: fit-content;
+			margin: inherit;
+		}
+
+		.bible {
+			position: fixed;
+			height: 100%;
+			width: 100%;
+			margin: unset;
+			text-align: center;
+			font-size: 5vw;
+			font-weight: 600;
+			letter-spacing: -0.04em;
+			line-height: 1.1em;
+			word-spacing: 0.075em;
+			background: rgba(0,20,100,0.60);
+			color: rgb(0, 170, 255);
+			-webkit-text-stroke: 1px rgb(0, 110, 255);
+		}
+		.bible .book {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			margin: unset;
+			text-align: center;
+		}
+		.bible .text {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: fit-content;
+			margin: auto 0;
+			color: #fff;
+			-webkit-text-stroke: 1px rgb(0, 20, 100);
+		}
+		.bible .version {
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0.2em;
+			margin: unset;
+			font-size: 2vw;
+			letter-spacing: 0.04em;
+			line-height: 1em;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="music animate__animated animate__fadeInUp" style="display: none;">
+			<div class="title">
+				<p class="name"></p>
+				<p class="artist"></p>
+			</div>
+			<div class="lyrics"></div>
+		</div>
+		<div class="bible animate__animated animate__fadeIn" style="display: none;">
+			<p class="book"></p>
+			<div class="text"></div>
+			<p class="version"></p>
+		</div>
+	</div>
+</body>
+<script>
+const animateCSS = (element, animation, prefix = 'animate__') =>
+// We create a Promise and return it
+new Promise((resolve, reject) => {
+  const animationName = `${prefix}${animation}`;
+  const node = document.querySelector(element);
+  node.classList.add(`${prefix}animated`, animationName);
+  // When the animation ends, we clean the classes and resolve the Promise
+  function handleAnimationEnd(event) {
+    event.stopPropagation();
+    node.classList.remove(`${prefix}animated`, animationName);
+    resolve('Animation ended');
+  }
+  node.addEventListener('animationend', handleAnimationEnd, {once: true});
+});
+if (!String.prototype.format) {
+  String.prototype.format = function() {
+		var args = arguments
+    return this.replace(/{(\d+)}/g, function(match, number) {
+      return typeof args[number] != 'undefined'
+        ? args[number]
+        : match
+      ;
+    });
+  };
+}
+
+// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+
+const debug = true
+function log(a) {
+  if (!debug) 
+		return
+	if (arguments && arguments.length > 1) {
+		var formatArgs = [].slice.call(arguments).slice(1)
+		a = arguments[0].replace(/{(\d+)}/g, (rgx, n) => typeof formatArgs[n] != 'undefined' ? formatArgs[n] : rgx)
+	}
+	console.log(a)
+}
+function logstatus(a) { 
+	log('>>> LOG STATUS : {0}', a) 
+}
+
+function getStyleVar(name) {
+	return getComputedStyle(document.body).getPropertyValue(name)
+}
+function getAnimateCssDelay() {
+	var value = getComputedStyle(document.body).getPropertyValue('--animate-duration')
+	return ((parseInt(value.match(/\d+/))) * (value.match(/\d+s/) ? 1000 : 1))
+}
+
+function bibleClose() {
+	log('closeBible()')
+	var element = $('.bible')
+	element.removeClass(usedAnimations)
+	element.addClass('animate__fadeOut')
+	setTimeout(() => {
+		element.hide()
+		element.removeClass(usedAnimations)
+		element.addClass('animate__fadeIn')
+		element.find('book, text, version').html(null)
+	}, getAnimateCssDelay())
+}
+function lyricsClose() {
+	log('lyricsClose()')
+	var element = $('.music')
+	element.removeClass(usedAnimations)
+	element.addClass('animate__fadeOutDown')
+	setTimeout(() => {
+		element.hide()
+		element.removeClass(usedAnimations)
+		element.addClass('animate__fadeInUp')
+		element.find('name, artist, lyrics').html(null)
+	}, getAnimateCssDelay())
+}
+
+const usedAnimations = 'animate__fadeIn animate__fadeInUp animate__fadeOut animate__fadeOutUp animate__fadeOutDown'
+var holyrics = {
+	data: {
+		set: function(data) {
+			switch (data.type) {
+				// ################################################################################
+				// holyrics.types.empty
+				// ################################################################################
+				case holyrics.types.empty:
+					logstatus('holyrics.types.empty')
+					if ($('.music').is(":visible")) lyricsClose()
+					if ($('.bible').is(":visible")) bibleClose()
+					break
+				// ################################################################################
+				// holyrics.types.music
+				// ################################################################################
+				case holyrics.types.music:
+					logstatus('holyrics.types.music')
+					if ($('.bible').is(":visible")) bibleClose()
+					var music = {
+						showTitle: data.custom_class === 'music_title',
+						title:     data.$system_var_music_title,
+						artist:    data.$system_var_music_artist.length ? data.$system_var_music_artist : data.$system_var_music_author,
+						lyrics:   !data.text.replace(/\<span.*\<\/span\>/g, '').replace(/^\s/g,'').length ? null : data.text.replace(/(?:\r\n|\r|\n)/g, '<br/>').replace(/\<span.*\<\/span\>/g, '')
+					}
+					if (music.showTitle) {
+						logstatus('holyrics.types.music-showTitle')
+						$lyrics.html(null)
+						$title.html(music.title)
+						$artist.html(music.artist)
+					} else {
+						logstatus('holyrics.types.music-lyrics')
+						log('music.lyrics = {0}', music.lyrics)
+						$title.html(null)
+						$artist.html(null)
+						$lyrics.html(music.lyrics)
+					}
+					if ($music.is(":hidden"))
+						$music.show()
+					break;
+				// ################################################################################
+				// holyrics.types.bible
+				// ################################################################################
+				case holyrics.types.bible:
+					logstatus('holyrics.types.bible')
+					if ($('.music').is(":visible")) lyricsClose()
+					var bible
+					try {
+						bible = {
+							book: data.header.match(/\>(.*?)\</)[1],
+							text: data.text.match(/\<ctt\>(.*?)\<\/ctt\>/)[1],
+							vers: data.text.match(/<\s*span[^>]*>(.*?)<\s*\/\s*span>/)[1]
+						}
+						console.log(bible)
+						if(bible.book == undefined) throw 'undefined - bible.book'
+						if(bible.text == undefined) throw 'undefined - bible.text'
+						if(bible.vers == undefined) throw 'undefined - bible.vers'
+					}
+					catch (ex) {
+						bibleClose()
+						console.log(data)
+						throw ex
+					}
+
+					$('.bible .book').text(bible.book)
+					$('.bible .text').text(bible.text)
+					$('.bible .version').text(bible.vers)
+
+					//$('.bible .text').text('')
+					//let nhenhentos = 195
+					//do {
+					//	var app = 'aaaaa'
+					//	$('.bible .text').append('aaaa ')
+					//	nhenhentos = nhenhentos - app.length
+					//} while(nhenhentos > 0)
+					//
+					//$('.bible .text').text()
+
+					if ($('.bible .text').text().length > 400) {
+						$('.bible .text').css({
+							//'color': 'red',
+							'line-height': '1.1em',
+							'fontSize': '4.2vw'
+						})
+					}
+					else if ($('.bible .text').text().length > 300) {
+						$('.bible .text').css({
+							//'color': 'yellow',
+							'fontSize': '4.7vw'
+						})
+					}
+					else if ($('.bible .text').text().length > 200) {
+						$('.bible .text').css({
+							//'color': 'pink',
+							'fontSize': '5.8vw'
+						})
+					}
+					else {
+						$('.bible .text').css({
+							//'color': 'white',
+							'line-height': '1.115em',
+							'fontSize': '6.2vw'
+						})
+					}
+					if ($bible.is(":hidden"))
+						$bible.show()
+					break;
+				default:
+					throw "exception: unhandled 'holyrics.type' = {0}".format(response.map.type)
+				break;
+			}
+		},
+	},
+	refreshLoop: {
+		id: null,
+		delay: getAnimateCssDelay()+100
+	},
+	types: {
+		empty: 'empty',
+		bible: 'BIBLE',
+		music: 'MUSIC'
+	},
+	url: 'http://192.168.1.54/stage-view/text.json',
+	initilize: function() {
+		setTimeout(function () {
+			holyrics.start()
+		}, getAnimateCssDelay()+500)
+	},
+	start: function() {
+		holyrics.refreshLoop.id = setInterval(function() {
+			$.get(holyrics.url)
+			.done(function(response) {
+				if (response.reload === "_true")
+					return
+				holyrics.data.set(response.map)
+			})
+		}, holyrics.refreshLoop.delay)
+	},
+}
+
+var $music, $title, $artist, $lyrics
+var $bible, $book, $text, $version
+
+$(function() {
+	$music  = $('.music')
+	$title  = $('.music .title .name')
+	$artist = $('.music .title .artist')
+	$lyrics = $('.music .lyrics')
+
+	$bible   = $('.bible ')
+	$book    = $('.bible .book')
+	$text    = $('.bible .text')
+	$version = $('.bible .version')
+
+	holyrics.initilize()
+})
+</script>
+</html>
