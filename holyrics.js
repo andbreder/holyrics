@@ -74,6 +74,8 @@ var app = {
     },
     append: function(e) {
       log('app.bible.append()')
+      if (app.lyrics.get.container().is(':visible'))
+        app.lyrics.get.container().hide()
       var container = app.bible.get.container()
       if (container.is(":hidden")) {
         container.html(null).append(e).show()
@@ -127,6 +129,8 @@ var app = {
     },
     show: function(holyricsRawData) {
       log('app.lyrics.show()')
+      if (app.bible.get.container().is(':visible'))
+        app.bible.get.container().hide()
       var data = {
         showTitle: holyricsRawData.custom_class === 'music_title',
         title:     holyricsRawData.$system_var_music_title,
