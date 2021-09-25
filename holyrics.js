@@ -333,6 +333,7 @@ $(function() {
           logstatus('holyrics.types.empty')
           if (app.lyrics.get.container().is(":visible")) app.lyrics.close()
           if (app.bible.get.container().is(":visible")) app.bible.close()
+          if ($('.container-crono').is(":visible")) $('.container-crono').hide()
           break
         case 'MUSIC':
           logstatus('holyrics.types.music')
