@@ -90,7 +90,6 @@ body {
 }
 
 .container-crono {
-  position: fixed;
   width: 100%;
   height: 100%;
   color: #000;
@@ -98,14 +97,23 @@ body {
   align-items: center;
 }
 .container-crono > p {
+  position: relative;
   width: 100%;
-  text-align: right;
-  margin: unset;
-  margin-right: 20vw;
-  font-size: 5em;
+  text-align: center;
+  font-size: 30vh;
   color: #fff;
-  
-  -webkit-text-fill-color: white; /* Will override color (regardless of order) */
-  -webkit-text-stroke-width: 2px;
+  font-weight: bolder;
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke-width: 4px;
+  -webkit-text-stroke-color: black;
+}
+.container-crono > p > span {
+  position: absolute;
+  left: 0; right: 0;
+  top: 30vh;
+  font-size: 15vh;
+  opacity: 0.5;
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke-width: 3px;
   -webkit-text-stroke-color: black;
 }

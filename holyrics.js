@@ -299,7 +299,8 @@ var app = {
     show: function(holyricsRawData) {
       //log('app.lyrics.show()')
       var crono = holyricsRawData.text.match(/^(\d+\:\d+)\<span/)
-      $('.container-crono > p').html(crono[1])
+      $('.container-crono > p').html(crono[1]).append(`<span>${hoje()}<span>`)
+
       if ($('.container-crono').is(":hidden"))
         $('.container-crono').show()
       if (crono[1].match(/^(0+\:0+)$/))
@@ -321,6 +322,11 @@ var app = {
       element.html(null)
     }, getAnimateCssDelay())
   }
+}
+
+function hoje() {
+  let today = new Date(Date.now())
+  return `${today.getDate()}-${("0"+(today.getMonth()+1)).slice(-2)}-${today.getFullYear()}`
 }
 
 $(function() {
