@@ -20,13 +20,13 @@ body {
   margin: unset;
   text-align: center;
   font-size: 5vw;
-  font-weight: 600;
+  font-weight: bold;
   letter-spacing: -0.04em;
   line-height: 1.1em;
-  word-spacing: 0.075em;
+  word-spacing: 0.1em;
   color: #fff;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,15,80,0) 10%, rgba(0,20,100,0.80) 100%) !important;
-  -webkit-text-stroke: 1px rgb(0, 20, 100);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,15,80,0) 10%, rgba(0,20,100,1) 100%) !important;
+  -webkit-text-stroke: 3px rgb(0, 20, 100);
 }
 .music .title .name {
   height: fit-content;

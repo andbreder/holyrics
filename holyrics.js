@@ -326,7 +326,7 @@ var app = {
 
 function hoje() {
   let today = new Date(Date.now())
-  return `${today.getDate()}-${("0"+(today.getMonth()+1)).slice(-2)}-${today.getFullYear()}`
+  return `${today.getDate()}/${("0"+(today.getMonth()+1)).slice(-2)}/${today.getFullYear()}`
 }
 
 $(function() {
