@@ -1,6 +1,16 @@
 const debug = true
-const holyricsServer = 'http://192.168.1.54/stage-view/text.json'
 const usedAnimations = 'animate__fadeIn animate__fadeInUp animate__fadeInRight animate__fadeInDown animate__fadeInLeft animate__fadeOut animate__fadeOutUp animate__fadeOutRight animate__fadeOutDown animate__fadeOutLeft animate__flipInX animate__flipOutX'
+
+settings = {
+  server: {
+    list: [
+      'http://localhost:7575',
+      // 'http://192.168.1.54:7575'
+    ],
+    requestUrl: '/stage-view/text.json',
+    index: 0
+  }
+}
 
 function log(a) {
   if (!debug)
@@ -121,6 +131,10 @@ var app = {
     },
     show: function(holyricsRawData) {
       //log('app.bible.show()')
+
+      if (app.lyrics.get.container().is(':visible'))
+        app.lyrics.close()
+
       var data
       try {
         data = {
@@ -145,9 +159,9 @@ var app = {
         '<p class="translation animate__animated">'+data.translation+'</p>'
       let headerMatch = data.header.match(/(.*)\s(\d+)\:(\d+)/)
       let opened = { 
-        book: headerMatch[1], 
-        chapter: headerMatch[2], 
-        versicle: headerMatch[3] 
+        book: headerMatch[1],
+        chapter: headerMatch[2],
+        versicle: headerMatch[3]
       }
       if (opened.book != app.bible.opened.book) {
         for (let i = 0; i < app.bible.order.length; i++) {
@@ -159,12 +173,12 @@ var app = {
       } else {
         if (app.bible.opened.chapter === opened.chapter) {
           app.bible.versicleAnimation = (app.bible.opened.versicle > opened.versicle) ? 'BACK' : 'NEXT'
-          console.log(`${app.bible.opened.versicle} > ${opened.versicle}`)
-          console.log(`VERSICLE -- ${app.bible.versicleAnimation}`)
+          // log(`${app.bible.opened.versicle} > ${opened.versicle}`)
+          // log(`VERSICLE -- ${app.bible.versicleAnimation}`)
         } else {
           app.bible.versicleAnimation = (app.bible.opened.chapter > opened.chapter) ? 'BACK' : 'NEXT'
-          console.log(`${app.bible.opened.chapter} > ${opened.chapter}`)
-          console.log(`chapter -- ${app.bible.versicleAnimation}`)
+          // log(`${app.bible.opened.chapter} > ${opened.chapter}`)
+          // log(`chapter -- ${app.bible.versicleAnimation}`)
         }
       }
       app.bible.opened = opened
@@ -185,7 +199,7 @@ var app = {
           .addClass('animate__fadeOut')
         $($(e)[0]).addClass('animate__fadeIn').appendTo(container)
 
-        console.log(`app.bible.versicleAnimation == ${app.bible.versicleAnimation}`)
+        // log(`app.bible.versicleAnimation == ${app.bible.versicleAnimation}`)
         var text = app.bible.get.text()
         text
           .removeClass(usedAnimations)
@@ -228,19 +242,39 @@ var app = {
       app.close('.music','animate__fadeOutDown', 'animate__fadeInUp')
     },
     show: function(holyricsRawData) {
-      //log('app.lyrics.show()')
+      // log('app.lyrics.show()')
+      // log('"holyrics raw data received" holyricsRawData')
+      // log(JSON.stringify(holyricsRawData, null, 2))
+
       if (app.bible.get.container().is(':visible'))
-        app.bible.get.container().hide()
+        app.bible.close()
+
       var data = {
         showTitle: holyricsRawData.custom_class === 'music_title',
         title:     holyricsRawData.$system_var_music_title,
         artist:    holyricsRawData.$system_var_music_artist.length ? holyricsRawData.$system_var_music_artist : holyricsRawData.$system_var_music_author,
-        verse:    !holyricsRawData.text.replace(/\<span.*\<\/span\>/g, '').replace(/^\s/g,'').length ? null : (holyricsRawData.text.replace(/(?:\r\n|\r|\n)/g, '<br/>').replace(/\<span.*\<\/span\>/g, '')).trim()
+        verses:    []
       }
+
+      let match;
+      const regex = /\<span.*?\>(.*?)\<\/span\>|([^\<\n\r]+)/g
+      while ((match = regex.exec(holyricsRawData.text)) !== null) {
+      // /*FUNCIONA ASSIM*/ while ((match = regex.exec("<span style='white-space:nowrap'>VEM, Ó TODO-PODEROSO,</span>\n<span style='white-space:nowrap'>ADORÁVEL CRIADOR;</span><span style='visibility:hidden;display:none' id='text-force-update_0'></span>")) !== null) {
+      // /*ASISM TAMBEM  */ while ((match = regex.exec("VEM, Ó TODO-PODEROSO,\nADORÁVEL CRIADOR;<span style='visibility:hidden;display:none' id='text-force-update_0'></span>")) !== null) {
+      if (match[1] && match[1].trim().length) {
+          data.verses.push(match[1]);
+        } else if (match[2] && match[2].trim().length) {
+          data.verses.push(match[2].trim());
+        }
+      }
+
+      // log('"holyrics raw data translated" data')
+      // log(JSON.stringify(data, null, 2))
+
       if (data.showTitle) {
         logstatus('app.lyrics.show() <= "show title"')
-        //log('app.lyrics.data.title("{0}")  <>  data.title("{1}")', app.lyrics.data.title, data.title)
-        //log('app.lyrics.data.artist("{0}") <> data.artist("{1}")', app.lyrics.data.artist, data.artist)
+        // log('app.lyrics.data.title("{0}")  <>  data.title("{1}")', app.lyrics.data.title, data.title)
+        // log('app.lyrics.data.artist("{0}") <> data.artist("{1}")', app.lyrics.data.artist, data.artist)
         if (app.lyrics.data.title != data.title || app.lyrics.data.artist != data.artist) {
           var content =
             '<div class="title animate__animated">'+
@@ -253,22 +287,21 @@ var app = {
             artist: data.artist
           }
         }
-      } else if (data.verse && data.verse.length) {
+      } else if (data.verses && data.verses.length) {
         logstatus('app.lyrics.show() <= "show verse"')
-        //log('app.lyrics.data.verse("{0}")  <>  data.verse("{1}")', app.lyrics.data.verse, data.verse)
-        if (app.lyrics.data.verse != data.verse) {
-          var content = '<div class="verse animate__animated">'+data.verse+'</div>'
+        const verse = data.verses.join('<br>')
+        if (app.lyrics.data.verse != verse) {
+          // log('app.lyrics.data.verse("{0}")  <>  data.verse("{1}")', app.lyrics.data.verse, verse)
+          var content = '<div class="verse animate__animated">'+verse+'</div>'
           app.lyrics.append(content)
-          app.lyrics.data = {
-            verse: data.verse
-          }
+          app.lyrics.data = { verse }
         }
       } else {
         logstatus('app.lyrics.show() <= "hide"')
-        if (app.lyrics.get.container().is(":visible") || 
-           (app.lyrics.data.title != null ||
+        if (app.lyrics.get.container().is(":visible") ||
+           (app.lyrics.data.title  != null ||
             app.lyrics.data.artist != null ||
-            app.lyrics.data.verse != null))
+            app.lyrics.data.verse  != null))
           app.lyrics.close()
       }
     },
@@ -297,14 +330,37 @@ var app = {
   },
   text: {
     show: function(holyricsRawData) {
-      //log('app.lyrics.show()')
-      var crono = holyricsRawData.text.match(/^(\d+\:\d+)\<span/)
-      $('.container-crono > p').html(crono[1]).append(`<span>${hoje()}<span>`)
+      log('app.lyrics.show()')
+      log(JSON.stringify(holyricsRawData,null,2))
 
-      if ($('.container-crono').is(":hidden"))
-        $('.container-crono').show()
-      if (crono[1].match(/^(0+\:0+)$/))
+      const data = []
+
+      let match;
+      const regex = /\<span.*?\>(.*?)\<\/span\>|([^\<\n\r]+)/g
+      while ((match = regex.exec(holyricsRawData.text)) !== null) {
+      if (match[1] && match[1].trim().length) {
+          data.push(match[1]);
+        } else if (match[2] && match[2].trim().length) {
+          data.push(match[2].trim());
+        }
+      }
+
+      if (data.length) {
+        // cronometro ?
+        match = /^(\d+):(\d+)$/g.exec(data[0])
+        if (match !== null) {
+
+          console.log('match')
+          console.log(match)
+          $('.container-crono > p').html(`${match[1].padStart(2, '0')}:${match[2].padStart(2, '0')}`).append(`<span>${hoje()}<span>`)
+          if ($('.container-crono').is(":hidden"))
+            $('.container-crono').show()
+        } else {
+          $('.container-crono').hide()
+        }
+      } else {
         $('.container-crono').hide()
+      }
     },
   },
   //
@@ -331,7 +387,12 @@ function hoje() {
 
 $(function() {
   setInterval(function() {
-    $.get(holyricsServer).done(function(response) {
+    $.ajax({
+      dataType: 'json',
+      url: settings.server.list[settings.server.index] + settings.server.requestUrl,
+      type: 'get'
+    })
+    .done(function(response) {
       if (response.reload === "_true")
         return
       switch (response.map.type.toUpperCase()) {
@@ -343,23 +404,41 @@ $(function() {
           break
         case 'MUSIC':
           logstatus('holyrics.types.music')
+
+          // if (app.lyrics.get.container().is(":visible")) app.lyrics.close()
+          if (app.bible.get.container().is(":visible")) app.bible.close()
+          if ($('.container-crono').is(":visible")) $('.container-crono').hide()
+
           app.lyrics.show(response.map)
           break;
         case 'BIBLE':
           logstatus('holyrics.types.bible')
+
+          if (app.lyrics.get.container().is(":visible")) app.lyrics.close()
+          // if (app.bible.get.container().is(":visible")) app.bible.close()
+          if ($('.container-crono').is(":visible")) $('.container-crono').hide()
+
           app.bible.show(response.map)
           break;
         case 'TEXT':
           logstatus('holyrics.types.text')
+
+          if (app.lyrics.get.container().is(":visible")) app.lyrics.close()
+          if (app.bible.get.container().is(":visible")) app.bible.close()
+          // if ($('.container-crono').is(":visible")) $('.container-crono').hide()
+
           app.text.show(response.map)
           break;
         default:
           throw "exception: unhandled 'holyrics.type' = " + response.map.type
       }
     })
-    .fail(function() {
+    .fail(function(xhr, status, thrown) {
       if (app.lyrics.get.container().is(":visible")) app.lyrics.close()
       if (app.bible.get.container().is(":visible")) app.bible.close()
+      if (status === 'error')
+        if (++settings.server.index > settings.server.list.length)
+          settings.server.index = 0
     })
-  }, getAnimateCssDelay()+100)
+  }, getAnimateCssDelay() + 100)
 })
