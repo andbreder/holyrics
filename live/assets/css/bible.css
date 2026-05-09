@@ -1,0 +1,34 @@
+.bible {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: minmax(10vh, auto) 1fr minmax(6vh, auto);
+  align-items: center;
+  background: var(--overlay-surface-color);
+  font-family: "Arial Black", Impact, Arial, Helvetica, sans-serif;
+}
+
+.bible-header,
+.bible-translation {
+  margin: 0;
+  color: var(--overlay-accent-color);
+  line-height: 1;
+}
+
+.bible-header {
+  padding: 2vh 3vw 0;
+  font-size: clamp(30px, 4.4vw, 86px);
+}
+
+.bible-text {
+  align-self: center;
+  padding: 2vh 4vw;
+  font-size: clamp(32px, 4.6vw, 90px);
+  line-height: 1.08;
+}
+
+.bible-translation {
+  padding: 0 3vw 2vh;
+  font-size: clamp(20px, 2.3vw, 44px);
+  text-transform: uppercase;
+}

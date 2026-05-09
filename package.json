@@ -1,0 +1,11 @@
+{
+  "name": "holyrics-tools",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "capture-console": "node tools/capture-console.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}

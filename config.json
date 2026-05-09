@@ -1,0 +1,10 @@
+{
+  "endpoint": {
+    "url": "http://localhost",
+    "port": 7575,
+    "path": "/stage-view/text.json"
+  },
+  "interval_ms": 400,
+  "timeout_seconds": 5,
+  "output_dir": "samples"
+}

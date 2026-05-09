@@ -1,0 +1,46 @@
+:root {
+  --motion-duration: 300ms;
+  --overlay-text-color: #fafafa;
+  --overlay-accent-color: rgb(0, 170, 255);
+  --overlay-stroke-color: rgb(0, 20, 100);
+  --overlay-surface-color: rgba(0, 20, 100, 0.72);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  position: relative;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stage > * {
+  position: absolute;
+  inset: 0;
+}
+
+.screen-reader-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

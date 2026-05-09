@@ -1,0 +1,45 @@
+body {
+  background: transparent;
+}
+
+.music {
+  display: flex;
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: 0;
+  min-height: 24vh;
+  padding: 3vh 3vw 4vh;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 15, 80, 0.15) 18%,
+    rgba(0, 20, 100, 0.96) 100%
+  );
+  font-family: "Arial Black", Impact, Arial, Helvetica, sans-serif;
+  line-height: 1.05;
+}
+
+.music-name {
+  max-width: 96vw;
+  margin: 0;
+  color: var(--overlay-accent-color);
+  font-size: clamp(42px, 7vw, 132px);
+  line-height: 0.98;
+  overflow-wrap: anywhere;
+}
+
+.music-artist {
+  max-width: 96vw;
+  margin: 1vh 0 0;
+  font-size: clamp(28px, 4.8vw, 88px);
+}
+
+.music-lines {
+  width: 100%;
+  max-width: 98vw;
+  font-size: clamp(30px, 5.1vw, 98px);
+}

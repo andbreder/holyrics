@@ -1,0 +1,25 @@
+.music,
+.text,
+.bible {
+  color: var(--overlay-text-color);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  text-shadow:
+    0 3px 0 var(--overlay-stroke-color),
+    0 -3px 0 var(--overlay-stroke-color),
+    3px 0 0 var(--overlay-stroke-color),
+    -3px 0 0 var(--overlay-stroke-color),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+}
+
+.music-lines,
+.text-lines,
+.bible-text {
+  margin: 0;
+}
+
+.music-lines span,
+.text-lines span {
+  display: block;
+}
