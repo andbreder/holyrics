@@ -136,29 +136,95 @@
     return spans[spans.length - 1] || "";
   }
 
+  function fitBibleText(element) {
+    if (window.Holyrics && typeof window.Holyrics.fitTextToBox === "function") {
+      window.Holyrics.fitTextToBox(element, { minFontSize: 10 });
+    }
+  }
+
+  function waitForMotion() {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, window.Holyrics.getAnimationDurationMs());
+    });
+  }
+
+  function resetAnimation(element) {
+    element.className = element.className
+      .split(/\s+/)
+      .filter((className) => className && !className.startsWith("animate__"))
+      .join(" ");
+  }
+
+  function animate(element, animationClass) {
+    resetAnimation(element);
+    element.classList.add("animate__animated", animationClass);
+  }
+
+  function createHeader(data) {
+    const header = document.createElement("h1");
+    header.className = "bible-header";
+    header.textContent = data.header;
+    return header;
+  }
+
+  function createText(data) {
+    const text = document.createElement("p");
+    text.className = "bible-text";
+    text.textContent = data.text;
+    fitBibleText(text);
+    return text;
+  }
+
+  function createTranslation(data) {
+    const translation = document.createElement("p");
+    translation.className = "bible-translation";
+    translation.textContent = data.translation;
+    return translation;
+  }
+
+  async function replaceElement(currentElement, nextElement, exitClass, enterClass) {
+    currentElement.insertAdjacentElement("afterend", nextElement);
+    animate(currentElement, exitClass);
+    animate(nextElement, enterClass);
+    await waitForMotion();
+
+    if (currentElement.parentElement) {
+      currentElement.remove();
+    }
+  }
+
+  async function replaceElementAfterExit(currentElement, nextElement, exitClass, enterClass) {
+    const parent = currentElement.parentElement;
+    const nextSibling = currentElement.nextSibling;
+
+    animate(currentElement, exitClass);
+    await waitForMotion();
+
+    if (currentElement.parentElement) {
+      currentElement.remove();
+    }
+
+    if (parent) {
+      parent.insertBefore(nextElement, nextSibling);
+      animate(nextElement, enterClass);
+      await waitForMotion();
+    }
+  }
+
+  function isSameBook(currentData, nextData) {
+    if (!currentData.reference || !nextData.reference) {
+      return currentData.header === nextData.header;
+    }
+
+    return stripAccents(currentData.reference.book) === stripAccents(nextData.reference.book);
+  }
+
   window.HolyricsRenderer = {
-    animation(currentData, nextData, reason) {
-      if (reason !== "replace") {
-        return {
-          enterClass: "animate__fadeIn",
-          exitClass: "animate__fadeOut",
-        };
-      }
-
-      const direction = directionFor(
-        currentData ? currentData.reference : null,
-        nextData ? nextData.reference : null
-      );
-
-      return direction === "back"
-        ? {
-            enterClass: "animate__fadeInLeft",
-            exitClass: "animate__fadeOutRight",
-          }
-        : {
-            enterClass: "animate__fadeInRight",
-            exitClass: "animate__fadeOutLeft",
-          };
+    animation() {
+      return {
+        enterClass: "animate__fadeIn",
+        exitClass: "animate__fadeOut",
+      };
     },
 
     normalize(map) {
@@ -175,21 +241,68 @@
     render(data) {
       const wrapper = document.createElement("section");
       wrapper.className = "bible";
-
-      const header = document.createElement("h1");
-      header.className = "bible-header";
-      header.textContent = data.header;
-
-      const text = document.createElement("p");
-      text.className = "bible-text";
-      text.textContent = data.text;
-
-      const translation = document.createElement("p");
-      translation.className = "bible-translation";
-      translation.textContent = data.translation;
-
-      wrapper.append(header, text, translation);
+      wrapper.append(createHeader(data), createText(data), createTranslation(data));
       return wrapper;
+    },
+
+    async transition({ currentNode, currentData, nextData }) {
+      const tasks = [];
+      const currentHeader = currentNode.querySelector(".bible-header");
+      const currentText = currentNode.querySelector(".bible-text");
+      const currentTranslation = currentNode.querySelector(".bible-translation");
+
+      resetAnimation(currentNode);
+
+      if (currentData.header !== nextData.header) {
+        if (isSameBook(currentData, nextData)) {
+          currentHeader.textContent = nextData.header;
+        } else {
+          tasks.push(
+            replaceElementAfterExit(
+              currentHeader,
+              createHeader(nextData),
+              "animate__fadeOutTop",
+              "animate__fadeIn"
+            )
+          );
+        }
+      }
+
+      if (currentData.text !== nextData.text) {
+        const direction = directionFor(currentData.reference, nextData.reference);
+        tasks.push(
+          direction === "back"
+            ? replaceElementAfterExit(
+                currentText,
+                createText(nextData),
+                "animate__fadeOutRight",
+                "animate__fadeInLeft"
+              )
+            : replaceElementAfterExit(
+                currentText,
+                createText(nextData),
+                "animate__fadeOutLeft",
+                "animate__fadeInRight"
+              )
+        );
+      }
+
+      if (currentData.translation !== nextData.translation) {
+        tasks.push(
+          replaceElementAfterExit(
+            currentTranslation,
+            createTranslation(nextData),
+            "animate__fadeOutBottom",
+            "animate__fadeIn"
+          )
+        );
+      }
+
+      if (tasks.length) {
+        await Promise.all(tasks);
+      }
+
+      return true;
     },
   };
 })();

@@ -1,9 +1,10 @@
 :root {
-  --motion-duration: 300ms;
+  --motion-duration: 200ms;
   --overlay-text-color: #fafafa;
   --overlay-accent-color: rgb(0, 170, 255);
   --overlay-stroke-color: rgb(0, 20, 100);
   --overlay-surface-color: rgba(0, 20, 100, 0.72);
+  --font-weight: 600;
 }
 
 * {
@@ -17,11 +18,15 @@ body {
   margin: 0;
   overflow: hidden;
   background: transparent;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Rubik", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: var(--font-weight);
+  font-style: normal;
 }
 
 body {
   position: relative;
+  text-transform: uppercase;
 }
 
 .stage {

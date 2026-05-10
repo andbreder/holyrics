@@ -16,6 +16,84 @@
     return line;
   }
 
+  function fitTextLines(element) {
+    if (window.Holyrics && typeof window.Holyrics.fitTextToBox === "function") {
+      window.Holyrics.fitTextToBox(element, { minFontSize: 10 });
+    }
+  }
+
+  function waitForMotion() {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, window.Holyrics.getAnimationDurationMs());
+    });
+  }
+
+  function resetAnimation(element) {
+    element.className = element.className
+      .split(/\s+/)
+      .filter((className) => className && !className.startsWith("animate__"))
+      .join(" ");
+  }
+
+  function animate(element, animationClass) {
+    resetAnimation(element);
+    element.classList.add("animate__animated", animationClass);
+  }
+
+  function createTitle(data) {
+    if (!data.title) {
+      return null;
+    }
+
+    const title = document.createElement("h1");
+    title.className = "text-title";
+    title.textContent = data.title;
+    return title;
+  }
+
+  function createContent(data) {
+    const content = document.createElement("p");
+    content.className = "text-lines";
+    data.lines.forEach((line) => content.appendChild(createLine(line)));
+    fitTextLines(content);
+    return content;
+  }
+
+  async function replaceElement(currentElement, nextElement, exitClass, enterClass) {
+    currentElement.insertAdjacentElement("afterend", nextElement);
+    animate(currentElement, exitClass);
+    animate(nextElement, enterClass);
+    await waitForMotion();
+
+    if (currentElement.parentElement) {
+      currentElement.remove();
+    }
+  }
+
+  async function replaceTitle(currentNode, nextData) {
+    const currentTitle = currentNode.querySelector(".text-title");
+    const currentContent = currentNode.querySelector(".text-lines");
+    const nextTitle = createTitle(nextData);
+
+    if (currentTitle && nextTitle) {
+      await replaceElement(currentTitle, nextTitle, "animate__fadeOut", "animate__fadeIn");
+      return;
+    }
+
+    if (currentTitle && !nextTitle) {
+      animate(currentTitle, "animate__fadeOut");
+      await waitForMotion();
+      currentTitle.remove();
+      return;
+    }
+
+    if (!currentTitle && nextTitle) {
+      currentNode.insertBefore(nextTitle, currentContent);
+      animate(nextTitle, "animate__fadeIn");
+      await waitForMotion();
+    }
+  }
+
   window.HolyricsRenderer = {
     animation() {
       return {
@@ -57,19 +135,43 @@
         return wrapper;
       }
 
-      if (data.title) {
-        const title = document.createElement("h1");
-        title.className = "text-title";
-        title.textContent = data.title;
+      const title = createTitle(data);
+      if (title) {
         wrapper.appendChild(title);
       }
 
-      const content = document.createElement("p");
-      content.className = "text-lines";
-      data.lines.forEach((line) => content.appendChild(createLine(line)));
-      wrapper.appendChild(content);
-
+      wrapper.appendChild(createContent(data));
       return wrapper;
+    },
+
+    async transition({ currentNode, currentData, nextData }) {
+      if (currentData.isTimer || nextData.isTimer) {
+        return false;
+      }
+
+      const tasks = [];
+      const titleChanged = currentData.title !== nextData.title;
+      const linesChanged = currentData.lines.join("\n") !== nextData.lines.join("\n");
+      const currentContent = currentNode.querySelector(".text-lines");
+
+      resetAnimation(currentNode);
+      currentNode.style.setProperty("--overlay-text-color", nextData.color);
+
+      if (titleChanged) {
+        tasks.push(replaceTitle(currentNode, nextData));
+      }
+
+      if (titleChanged || linesChanged) {
+        tasks.push(
+          replaceElement(currentContent, createContent(nextData), "animate__fadeOut", "animate__fadeIn")
+        );
+      }
+
+      if (tasks.length) {
+        await Promise.all(tasks);
+      }
+
+      return true;
     },
   };
 })();

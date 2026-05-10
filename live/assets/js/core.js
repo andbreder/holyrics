@@ -108,6 +108,89 @@
     return parseHtmlFragment(html).content.textContent.replace(/\u00a0/g, " ").trim();
   }
 
+  function fitTextToBox(element, options) {
+    const settings = Object.assign(
+      {
+        minFontSize: 18,
+        maxFontSize: 0,
+      },
+      options || {}
+    );
+    let frameId = 0;
+    let observer = null;
+
+    function fits() {
+      return (
+        element.scrollWidth <= element.clientWidth + 1 &&
+        element.scrollHeight <= element.clientHeight + 1
+      );
+    }
+
+    function fit() {
+      frameId = 0;
+
+      if (!element.isConnected) {
+        if (observer) {
+          observer.disconnect();
+        }
+        return;
+      }
+
+      const box = element.getBoundingClientRect();
+      if (!box.width || !box.height) {
+        return;
+      }
+
+      element.style.fontSize = "";
+
+      const fallbackMaxFontSize = settings.maxFontSize || 96;
+      const cssFontSize =
+        Number.parseFloat(getComputedStyle(element).fontSize) || fallbackMaxFontSize;
+      const maxFontSize = settings.maxFontSize
+        ? Math.min(settings.maxFontSize, cssFontSize)
+        : cssFontSize;
+      const minFontSize = Math.min(settings.minFontSize, maxFontSize);
+      let low = minFontSize;
+      let high = maxFontSize;
+
+      element.style.fontSize = `${high}px`;
+      if (fits()) {
+        return;
+      }
+
+      for (let index = 0; index < 12; index += 1) {
+        const middle = (low + high) / 2;
+        element.style.fontSize = `${middle}px`;
+
+        if (fits()) {
+          low = middle;
+        } else {
+          high = middle;
+        }
+      }
+
+      element.style.fontSize = `${Math.floor(low * 10) / 10}px`;
+    }
+
+    function scheduleFit() {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(fit);
+    }
+
+    if (window.ResizeObserver) {
+      observer = new ResizeObserver(scheduleFit);
+      observer.observe(element);
+    } else {
+      window.addEventListener("resize", scheduleFit);
+    }
+
+    window.requestAnimationFrame(scheduleFit);
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(scheduleFit);
+    }
+  }
+
   function isEmptyMap(map) {
     if (!map || typeof map !== "object") {
       return true;
@@ -223,6 +306,27 @@
       state.reason
     );
 
+    if (
+      current &&
+      state.nextData &&
+      state.renderer &&
+      typeof state.renderer.transition === "function"
+    ) {
+      const handled = await state.renderer.transition({
+        currentNode: current,
+        currentData: appState.currentData,
+        nextData: state.nextData,
+        reason: state.reason,
+      });
+
+      if (handled) {
+        document.body.classList.remove("is-empty");
+        appState.currentKey = state.nextKey;
+        appState.currentData = state.nextData;
+        return;
+      }
+    }
+
     if (current) {
       await animateOut(current, options.exitClass);
       if (current.parentElement === stage) {
@@ -296,6 +400,11 @@
       }
 
       const normalized = renderer.normalize(map);
+      if (!normalized) {
+        clearStage({ reason: appState.currentKey ? "replace" : "clear" });
+        return;
+      }
+
       const key = stableStringify(normalized);
       if (key !== appState.currentKey) {
         queueStage(normalized, key, renderer, appState.currentKey ? "replace" : "enter");
@@ -320,6 +429,7 @@
     clearStage,
     extractLines,
     extractText,
+    fitTextToBox,
     getAnimationDurationMs,
     parseHtmlFragment,
     queueStage,

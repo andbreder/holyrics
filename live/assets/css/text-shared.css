@@ -5,12 +5,22 @@
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
-  text-shadow:
-    0 3px 0 var(--overlay-stroke-color),
-    0 -3px 0 var(--overlay-stroke-color),
-    3px 0 0 var(--overlay-stroke-color),
-    -3px 0 0 var(--overlay-stroke-color),
-    0 8px 18px rgba(0, 0, 0, 0.5);
+  -webkit-text-stroke: 8px var(--overlay-stroke-color);
+  paint-order: stroke fill;
+  text-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+}
+
+@supports not (-webkit-text-stroke: 1px black) {
+  .music,
+  .text,
+  .bible {
+    text-shadow:
+      0 3px 0 var(--overlay-stroke-color),
+      0 -3px 0 var(--overlay-stroke-color),
+      3px 0 0 var(--overlay-stroke-color),
+      -3px 0 0 var(--overlay-stroke-color),
+      0 8px 18px rgba(0, 0, 0, 0.5);
+  }
 }
 
 .music-lines,

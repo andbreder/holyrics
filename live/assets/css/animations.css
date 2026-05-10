@@ -25,6 +25,14 @@
   animation: slide-down-out var(--motion-duration) ease-in both;
 }
 
+.animate__fadeOutBottom {
+  animation: slide-down-out var(--motion-duration) ease-in both;
+}
+
+.animate__fadeOutTop {
+  animation: slide-up-out var(--motion-duration) ease-in both;
+}
+
 .animate__fadeInRight {
   animation: slide-right-in var(--motion-duration) ease-out both;
 }
@@ -90,6 +98,17 @@
   to {
     opacity: 0;
     transform: translateY(24px);
+  }
+}
+
+@keyframes slide-up-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
   }
 }
 
